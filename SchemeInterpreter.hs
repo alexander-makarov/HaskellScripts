@@ -2,6 +2,7 @@
 module Main where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
+import Conrol.Monad
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -30,6 +31,24 @@ parseString = do
                 x <- many (noneOf "\"")
                 char '"'
                 return $ String x
+
+parseNumber :: Parser LispVal
+parseNumber = liftM (Number . read) $ many1 digit
+
+parseAtom :: Parser LispVal
+parseAtom = do 
+              first <- letter <|> symbol
+              rest <- many (letter <|> digit <|> symbol)
+              let atom = first:rest
+              return $ case atom of 
+                         "#t" -> Bool True
+                         "#f" -> Bool False
+                         _    -> Atom atom
+
+parseExpr :: Parser LispVal
+parseExpr = parseAtom
+         <|> parseString
+         <|> parseNumber
 
 main :: IO ()
 main = do 
