@@ -3,6 +3,7 @@ module Main where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad
+import Text.Parsec.Prim
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -33,10 +34,13 @@ parseString = do
                 return $ String x
 
 parseNumber :: Parser LispVal
---parseNumber = liftM (Number . read) $ many1 digit
-parseNumber = do
-                x <- many1 digit
-                return $ Number $ read x
+-- parseNumber = liftM (Number . read) $ many1 digit
+-- parseNumber = do
+                -- x <- many1 digit
+                -- return $ Number $ read x
+parseNumber = many1 digit >>= (\x ->
+              return (Number $ read x))
+                
 
 parseAtom :: Parser LispVal
 parseAtom = do 
