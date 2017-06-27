@@ -28,11 +28,20 @@ data LispVal = Atom String
 --In general, use >> if the actions don't return a value, >>= if you'll be immediately passing that value into the next action, and do-notation otherwise.
 parseString :: Parser LispVal
 parseString = do
-                char '"'
-                x <- many (noneOf "\"")
-                char '"'
+                --char '"'
+                x <- many ((noneOf "\"\r") <|> (parseEscapedQuote) <|> (parseEscapedSlash))
+                --x <- many (char '"')
+                --char '"'
                 return $ String x
+                
+parseEscapedQuote = do
+               string "\""
+               return '"'
 
+parseEscapedSlash = do
+               string "\r"
+               return '0'
+               
 parseNumber :: Parser LispVal
 -- parseNumber = liftM (Number . read) $ many1 digit
 -- parseNumber = do
@@ -51,6 +60,9 @@ parseAtom = do
                          "#t" -> Bool True
                          "#f" -> Bool False
                          _    -> Atom atom
+
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
 
 parseExpr :: Parser LispVal
 parseExpr = parseAtom
